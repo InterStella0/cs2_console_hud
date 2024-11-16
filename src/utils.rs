@@ -4,6 +4,7 @@ use crate::model::Config;
 pub enum CommandError{
     ProcessError(String),
     ExpectedArgument(String, usize),
+    ArgumentError(String),
     ConfigError(String)
 }
 

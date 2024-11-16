@@ -24,7 +24,8 @@ fn main(){
         let message = match e {
             CommandError::ExpectedArgument(s, pos) => format!("Expected argument {s} at position {pos}!"),
             CommandError::ProcessError(message) => format!("Something went wrong processing {mode}: {message}"),
-            CommandError::ConfigError(message) => message
+            CommandError::ConfigError(message) => message,
+            CommandError::ArgumentError(message) => format!("Argument error: {message}"),
         };
         println!("{message}")
     });

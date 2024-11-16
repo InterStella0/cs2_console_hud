@@ -1,50 +1,42 @@
-use std::{fs, cmp};
+use std::fs;
+
 use regex::Regex;
-use crate::{model::Bind, utils::{ get_arg, get_config, ValueResult }};
+
+use crate::commands::cmd_name;
+use crate::model::Bind;
+use crate::model::ParseValue;
+use crate::utils::{ get_arg, get_config, ValueResult, CommandError};
 
 pub fn reading_log() -> ValueResult<()>{
-    let mode = get_arg(2, "mode")?;
-    let leading_pattern = format!("set_{}_", &mode);
-    let re = Regex::new(format!(r"{}(?P<n>\d+)(?P<i>\w)", leading_pattern).as_str()).unwrap();
+    let bind_name = get_arg(2, "bind_name")?;
+    let resolve_name = cmd_name(&bind_name);
     let conf = get_config()?;
+    let current_bind = conf.binds.iter().find(|bind| {
+        let name = match bind{
+            Bind::Interval(bind) => bind.name.clone(),
+            Bind::Toggle(bind) => bind.name.clone(),
+            Bind::Say(bind) => bind.name.clone()
+        };
+        cmd_name(&name) == resolve_name
+    }).ok_or_else(||
+        CommandError::ArgumentError(format!("Invalid bind name:{bind_name}"))
+    )?;  // Integrity check
+    let re = Regex::new(&format!("{resolve_name}_(?<value>[\\w_]+)")).unwrap();
     let content = fs::read_to_string(conf.cs2_console_path).unwrap_or("".into());
-    let mut mode_value_inc = 0;
-    let mut mode_value_dec = 0;
-    let leadings = conf.binds.iter().filter_map(|bind_data| {
-        match bind_data{
-            Bind::Interval(bind) => Some(bind.name.clone()),
-            Bind::Toggle(bind) => Some(bind.name.clone()),
-            Bind::Say(bind) => Some(bind.name.clone()),
-            Bind::Unknown(_) => None
-        }
-    });
+    let mut current_value = String::from("NA");
     for line in content.split("\n"){
-        let is_con = true;
-        for lead in leadings{
-            if line.contains(&lead){
-                is_con = false;
-            }
-        }
-        if leadings.any(|lead| line.contains(&lead)){
-            continue;
-        }
-        
-
-        let (Some(value), Some(value_type)) = (found.name("n"), found.name("i")) else {
+        let Some(group) = re.captures(&line) else {
             continue;
         };
-
-        let assign_value = value.as_str().parse().unwrap_or_default();
-        match value_type.as_str() {
-            "i" => mode_value_inc = assign_value,
-            "d" => mode_value_dec = assign_value,
-            _ => {},
-        }
+        let Some(value) = group.name("value") else {
+            continue;
+        };
+        current_value = match current_bind{
+            Bind::Interval(b) => b.console_value(value.as_str())?,
+            Bind::Toggle(b) => b.console_value(value.as_str())?,
+            Bind::Say(b) => b.console_value(value.as_str())?,
+        };
     }
-    let current = if mode_value_inc == 200 && mode_value_dec == 190{ 200 } else {
-        cmp::max(mode_value_inc - 10, 0)
-    };
-    let value = if current == 0 { "OFF".into() } else { format!("{}%", current.to_string())};
-    println!("{value}");
+    println!("{current_value}");
     Ok(())
 }

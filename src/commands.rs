@@ -4,9 +4,11 @@ use std::fs;
 use crate::utils::{get_config, ValueResult, CommandError};
 use crate::model::Bind;
 
-
-fn name_to_cmd(name: &str, suffix: &str) -> String{
-    format!("set_{}_{}", name.trim().replace(" ", "_"), suffix)
+pub fn cmd_name(name: &str) -> String{
+    format!("set_{}", name.trim().replace(" ", "_"))
+}
+pub fn name_to_cmd(name: &str, suffix: &str) -> String{
+    format!("{}_{}", cmd_name(name), suffix)
 }
 
 
@@ -15,9 +17,6 @@ pub fn process_bind() -> ValueResult<()>{
     let mut config_binds = vec![];
     for bind in conf.binds{
         match bind{
-            Bind::Unknown(config) => {
-                println!("Invalid bind found: {config}")
-            },
             Bind::Say(_) => {},
             Bind::Toggle(config) => {
                 // bind f9 toggle_forward_on
@@ -65,7 +64,6 @@ pub fn process_bind() -> ValueResult<()>{
                     value += config.step;
                     if current < config.default && config.default < value{
                         value = config.default;
-                        println!("dfeault {}", value);
                     }
                     if value >= config.max{  // safe guard
                         if lever_exit{
@@ -101,7 +99,7 @@ pub fn process_bind() -> ValueResult<()>{
     }
 
     let writing = config_binds.join("\n");
-    let path = "bind_generated.conf";
+    let path = "bind_generated.cfg";
     fs::write(path, writing).map_err(
         |e| CommandError::ProcessError(format!("Couldn't write '{path}': {e}"))
     )?;

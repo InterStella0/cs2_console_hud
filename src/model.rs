@@ -7,10 +7,12 @@ use serde_json::Value;
 pub enum Bind{
     Say(SayBind),
     Toggle(ToggleBind),
-    Interval(IntervalBind),
-    Unknown(String)
+    Interval(IntervalBind)
 }
 
+pub trait ParseValue{
+    fn console_value(&self, value: &str) -> ValueResult<String>;
+}
 
 #[derive(Deserialize, Debug)]
 pub struct Config{
@@ -25,6 +27,11 @@ pub struct SayBind{
     pub console: String,
     pub key: String
 }
+impl ParseValue for SayBind{
+    fn console_value(&self, value: &str) -> ValueResult<String> {
+        Ok("".into())
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ToggleBind{
@@ -32,6 +39,11 @@ pub struct ToggleBind{
     pub console_activate: String,
     pub console_deactivate: String,
     pub key: String,
+}
+impl ParseValue for ToggleBind{
+    fn console_value(&self, value: &str) -> ValueResult<String> {
+        Ok("on".into())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -44,6 +56,16 @@ pub struct IntervalBind{
     pub max: f64,
     pub console: String,
     pub default: f64,
+}
+impl ParseValue for IntervalBind{
+    fn console_value(&self, value: &str) -> ValueResult<String> {
+        let real = value.replace("_", ".");
+        let parsed = real.parse::<f64>().map_err(
+            |_| CommandError::ProcessError(format!("Couldn't parse {real} to float."))
+        )?;
+        let display = parsed * 100.;
+        Ok(format!("{display:.1}%"))
+    }
 }
 
 
@@ -71,7 +93,9 @@ where
     for bind in binds{
         let bind_name = bind.get("type")
             .and_then(Value::as_str)
-            .ok_or_else(|| D::Error::custom("Couldn't find \"name\" key in config"))?;
+            .ok_or_else(|| D::Error::custom(
+                format!("Couldn't find \"name\" key for: {bind:?}")
+            ))?;
         let bind_type = bind.get("type")
             .and_then(Value::as_str)
             .ok_or_else(|| D::Error::custom(
@@ -83,7 +107,7 @@ where
             "repeat-say" => Bind::Say(create_bind::<D, SayBind>(bind_owned, bind_name)?),
             "toggle" =>  Bind::Toggle(create_bind::<D, ToggleBind>(bind_owned, bind_name)?),
             "interval" => Bind::Interval(create_bind::<D, IntervalBind>(bind_owned, bind_name)?),
-            _ => Bind::Unknown(format!("{bind}")),
+            _ => return Err(D::Error::custom(format!("Unknown bind type: {bind_type}"))),
             };
         result.push(parsed);
         }
