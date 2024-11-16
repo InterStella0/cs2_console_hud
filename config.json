@@ -1,0 +1,44 @@
+{
+    "cs2_console_path": "/home/sarah/.steam/debian-installation/steamapps/common/Counter-Strike Global Offensive/game/csgo/console.log",
+    "binds": [
+        {
+            "name": "Repeat",
+            "type": "repeat-say",
+            "console": "say <repeat_value>",
+            "key": "F11"
+        },
+        {
+            "name": "VOIP Volume",
+            "type": "interval",
+            "step": 0.1,
+            "up_key": "F5",
+            "down_key": "F6",
+            "min": 0,
+            "max": 2,
+            "console": "snd_voipvolume",
+            "default": 1.5
+        },
+        {
+            "name": "Music Volume",
+            "type": "interval",
+            "step": 0.1,
+            "min": 0,
+            "max": 2,
+            "console": "snd_musicvolume",
+            "up_key": "F7",
+            "down_key": "F8",
+            "default": 0.3
+        },
+        {
+            "name": "Master Volume",
+            "type": "interval",
+            "step": 0.1,
+            "min": 0,
+            "max": 1,
+            "up_key": "F3",
+            "down_key": "F4",
+            "console": "volume",
+            "default": 1
+        }
+    ]
+}
