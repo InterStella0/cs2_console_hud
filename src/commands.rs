@@ -19,11 +19,8 @@ pub fn process_bind() -> ValueResult<()>{
         match bind{
             Bind::Say(_) => {},
             Bind::Toggle(config) => {
-                // bind f9 toggle_forward_on
-                // alias toggle_forward_on "+forward;bind f9 toggle_forward_off;echo AUTO FORWARD ON"
-                // alias toggle_forward_off "-forward;bind f9 toggle_forward_on;echo AUTO FORWARD OFF"
-                let alias_name_toggle = name_to_cmd(&config.name, "_on");
-                let alias_name_untoggle = name_to_cmd(&config.name, "_off");
+                let alias_name_toggle = name_to_cmd(&config.name, "on");
+                let alias_name_untoggle = name_to_cmd(&config.name, "off");
                 let mut command = format!("bind {} {}", config.key, alias_name_toggle);
                 command += format!(
                     "\nalias {} \"{};bind {} {}\"", &alias_name_toggle, &config.console_activate, 
@@ -39,6 +36,7 @@ pub fn process_bind() -> ValueResult<()>{
                 // default
                 // bind f7 set_music_100
                 // bind f8 set_music_100
+                // snd_musicvolume 1
                 // ongoing
                 // alias set_music_90 "snd_musicvolume 0.9; bind f7 set_music_80; bind f8 set_music_100"
                 // alias set_music_90 "snd_musicvolume 0.9; bind f7 set_music_80; bind f8 set_music_100"
@@ -49,9 +47,8 @@ pub fn process_bind() -> ValueResult<()>{
                 let mut lever_exit = false;
                 let mut default_alias: Option<String> = None;
                 loop{
-                    let real_value = (value * 100.0).round() / 100.0;  // remove floating precision dumbstuff
-                    let command_value = format!("{} {}", config.console, real_value);
-                    let value_formatted = format!("{}", real_value)
+                    let command_value = format!("{} {}", config.console, value);
+                    let value_formatted = format!("{}", value)
                                                     .replace(".", "_");
                     let alias_value = name_to_cmd(&config.name, &value_formatted);
                     
@@ -62,6 +59,8 @@ pub fn process_bind() -> ValueResult<()>{
                     vec_aliases.push((alias_value, command_value));
                     let current = value;
                     value += config.step;
+                    value = (value * 100.0).round() / 100.0;  // remove floating precision dumbstuff
+                    
                     if current < config.default && config.default < value{
                         value = config.default;
                     }
@@ -91,8 +90,7 @@ pub fn process_bind() -> ValueResult<()>{
                         || CommandError::ProcessError("Couldn't resolve default bind.".into())
                     ).and_then(|d  | Ok(d.0.clone()))?
                 };
-                commands.push(format!("bind {} {}", config.up_key, initial));
-                commands.push(format!("bind {} {}", config.down_key, initial));
+                commands.push(initial);
                 config_binds.extend(commands);
             }
         }

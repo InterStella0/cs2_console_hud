@@ -64,7 +64,7 @@ impl ParseValue for IntervalBind{
             |_| CommandError::ProcessError(format!("Couldn't parse {real} to float."))
         )?;
         let display = parsed * 100.;
-        Ok(format!("{display:.1}%"))
+        Ok(format!("{:.1$}%", display, 1))
     }
 }
 
