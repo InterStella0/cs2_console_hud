@@ -1,11 +1,8 @@
-use utils::CommandError;
-mod reader;
-mod utils;
-mod model;
-mod commands;
+mod core;
+use core::{reader, utils, commands};
 
 use reader::reading_log;
-use crate::utils::get_arg;
+use utils::{get_arg, CommandError};
 use commands::process_bind;
 
 
@@ -21,8 +18,12 @@ fn main(){
         _ => return
     }.unwrap_or_else(|e| {
         let message = match e {
-            CommandError::ExpectedArgument(s, pos) => format!("Expected argument {s} at position {pos}!"),
-            CommandError::ProcessError(message) => format!("Something went wrong processing {mode}: {message}"),
+            CommandError::ExpectedArgument(s, pos) => format!(
+                "Expected argument {s} at position {pos}!"
+            ),
+            CommandError::ProcessError(message) => format!(
+                "Something went wrong processing {mode}: {message}"
+            ),
             CommandError::ConfigError(message) => message,
             CommandError::ArgumentError(message) => format!("Argument error: {message}"),
         };

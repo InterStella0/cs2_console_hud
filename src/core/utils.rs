@@ -1,5 +1,5 @@
 use std::{env, fs};
-use crate::model::Config;
+use super::model::Config;
 
 pub enum CommandError{
     ProcessError(String),

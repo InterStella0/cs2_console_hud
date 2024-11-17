@@ -1,8 +1,8 @@
 use std::cmp::min;
 use std::fs;
 
-use crate::utils::{get_config, ValueResult, CommandError};
-use crate::model::Bind;
+use super::utils::{get_config, ValueResult, CommandError};
+use super::model::Bind;
 
 pub fn cmd_name(name: &str) -> String{
     format!("set_{}", name.trim().replace(" ", "_"))
