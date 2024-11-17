@@ -81,12 +81,17 @@ pub struct IntervalBind{
 }
 impl ParseValue for IntervalBind{
     fn console_value(&self, value: &str) -> ValueResult<String> {
+        let display = self.data_value(value)?;
+        Ok(format!("{:.1$}%", display, 1))
+    }
+}
+impl IntervalBind{
+    pub fn data_value(&self, value: &str) -> ValueResult<f64> {
         let real = value.replace("_", ".");
         let parsed = real.parse::<f64>().map_err(
             |_| CommandError::ProcessError(format!("Couldn't parse {real} to float."))
         )?;
-        let display = parsed * 100.;
-        Ok(format!("{:.1$}%", display, 1))
+        Ok(parsed * 100.)
     }
 }
 

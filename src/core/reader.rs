@@ -34,6 +34,7 @@ pub fn reading_log() -> ValueResult<()>{
     let now: NaiveDateTime = Local::now().naive_local();
     let before_10_seconds = now - TimeDelta::seconds(10);
     let mut so_far_reads = vec![];
+    let mut interval_values = [-1., -1.];
     for line in content.split("\n"){
         let vline: Vec<&str> = line.split(" ").collect();
         let Some(datetime) = vline.get(0..2) else {
@@ -55,14 +56,14 @@ pub fn reading_log() -> ValueResult<()>{
         };
         current_value = match current_bind{
             Bind::RepeatSay(b) => {
-                let lines = so_far_reads.iter().filter(|(cdt, _)| 
-                    before_10_seconds < *cdt && *cdt < now 
+                let lines = so_far_reads.iter().filter(
+                    |(cdt, _)| before_10_seconds < *cdt && *cdt < now 
                 );
                 let mut new_value = None;
                 for (_, reading) in lines{
                     if reading.contains(&b.user){
                         let split_by = format!("{}: ", "");
-                        let splitting: Vec<&str> = reading.split(&split_by).collect();
+                        let splitting: Vec<&str> = reading.splitn(1, &split_by).collect();
                         new_value = splitting.get(1).cloned()
                     }
                 }
@@ -78,7 +79,19 @@ pub fn reading_log() -> ValueResult<()>{
                     String::from(new)
                 }else { continue }
             },
-            Bind::Interval(b) => b.console_value(value.as_str())?,
+            Bind::Interval(b) => {
+                let position = if line.contains(&b.down_key){ 0 }else{ 1 };
+                let step = b.step * 100.;
+                let minimum = b.min * 100.;
+                let data_console = b.data_value(value.as_str())?;
+                let minimum_step = minimum + step;
+                interval_values[position] = data_console;
+                if position == 0 && data_console == minimum && minimum_step == interval_values[1]{
+                    b.console_value("0")?
+                }else{
+                    format!("{:.1$}%", data_console + step, 1)
+                }
+            },
             Bind::Toggle(b) => b.console_value(value.as_str())?,
             Bind::Execute(b) => b.console_value(value.as_str())?,
         };
