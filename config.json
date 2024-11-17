@@ -5,8 +5,8 @@
             "name": "VOIP Volume",
             "type": "interval",
             "step": 0.1,
-            "up_key": "F5",
-            "down_key": "F6",
+            "up_key": "F6",
+            "down_key": "F5",
             "min": 0,
             "max": 2,
             "console": "snd_voipvolume",
@@ -19,8 +19,8 @@
             "min": 0,
             "max": 2,
             "console": "snd_musicvolume",
-            "up_key": "F7",
-            "down_key": "F8",
+            "up_key": "F8",
+            "down_key": "F7",
             "default": 0.3
         },
         {
@@ -29,8 +29,8 @@
             "step": 0.1,
             "min": 0,
             "max": 1,
-            "up_key": "F3",
-            "down_key": "F4",
+            "up_key": "F4",
+            "down_key": "F3",
             "console": "volume",
             "default": 1
         },
