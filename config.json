@@ -2,12 +2,6 @@
     "cs2_console_path": "/home/sarah/.steam/debian-installation/steamapps/common/Counter-Strike Global Offensive/game/csgo/console.log",
     "binds": [
         {
-            "name": "Repeat",
-            "type": "repeat-say",
-            "console": "say <repeat_value>",
-            "key": "F11"
-        },
-        {
             "name": "VOIP Volume",
             "type": "interval",
             "step": 0.1,

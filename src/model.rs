@@ -5,7 +5,8 @@ use serde_json::Value;
 
 #[derive(Debug)]
 pub enum Bind{
-    Say(SayBind),
+    RepeatSay(RepeatSayBind),
+    Execute(ExecuteBind),
     Toggle(ToggleBind),
     Interval(IntervalBind)
 }
@@ -22,14 +23,28 @@ pub struct Config{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SayBind{
+pub struct ExecuteBind{
     pub name: String,
-    pub console: String,
+    pub commands: Vec<String>,
     pub key: String
 }
-impl ParseValue for SayBind{
+impl ParseValue for ExecuteBind{
     fn console_value(&self, value: &str) -> ValueResult<String> {
-        Ok("".into())
+        Ok(String::from(value))
+    }
+}
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RepeatSayBind{
+    pub name: String,
+    pub user: String,
+    pub filename: String,
+    pub fullpath: String,
+    pub record_key: String,
+    pub send_key: String,
+}
+impl ParseValue for RepeatSayBind{
+    fn console_value(&self, value: &str) -> ValueResult<String> {
+        Ok(String::from(value))
     }
 }
 
@@ -42,7 +57,14 @@ pub struct ToggleBind{
 }
 impl ParseValue for ToggleBind{
     fn console_value(&self, value: &str) -> ValueResult<String> {
-        Ok("on".into())
+        let val = if value.contains("on"){
+            "ON"
+        }else if value.contains("off"){
+            "OFF"
+        }else{
+            "NA"
+        };
+        Ok(String::from(val))
     }
 }
 
@@ -104,7 +126,8 @@ where
 
         let bind_owned = bind.to_owned();
         let parsed: Bind = match bind_type {
-            "repeat-say" => Bind::Say(create_bind::<D, SayBind>(bind_owned, bind_name)?),
+            "execute" => Bind::Execute(create_bind::<D, ExecuteBind>(bind_owned, bind_name)?),
+            "repeat_say" => Bind::RepeatSay(create_bind::<D, RepeatSayBind>(bind_owned, bind_name)?),
             "toggle" =>  Bind::Toggle(create_bind::<D, ToggleBind>(bind_owned, bind_name)?),
             "interval" => Bind::Interval(create_bind::<D, IntervalBind>(bind_owned, bind_name)?),
             _ => return Err(D::Error::custom(format!("Unknown bind type: {bind_type}"))),

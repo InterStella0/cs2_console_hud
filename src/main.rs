@@ -6,7 +6,7 @@ mod commands;
 
 use reader::reading_log;
 use crate::utils::get_arg;
-use commands::{process_bind, process_say};
+use commands::process_bind;
 
 
 
@@ -18,7 +18,6 @@ fn main(){
     match mode.as_str(){
         "read" => reading_log(),
         "generate-bind" => process_bind(),
-        "generate-say" => process_say(),
         _ => return
     }.unwrap_or_else(|e| {
         let message = match e {

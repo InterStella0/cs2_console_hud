@@ -17,7 +17,21 @@ pub fn process_bind() -> ValueResult<()>{
     let mut config_binds = vec![];
     for bind in conf.binds{
         match bind{
-            Bind::Say(_) => {},
+            Bind::Execute(config) => {
+                let cmds = config.commands.join(";");
+                let command = format!("bind {} \"{}\"", config.key, cmds);
+                config_binds.push(command);
+            },
+            Bind::RepeatSay(config) => {
+                let alias_value = name_to_cmd(&config.name, "record");
+                let commands = vec![
+                    format!("alias {0} \"echo READ_LAST;bind {1} {0}\"", 
+                        alias_value, config.record_key),
+                    format!("bind {} {}", config.record_key, alias_value),
+                    format!("bind {} \"exec {}\"", config.send_key, config.filename),
+                ];
+                config_binds.extend(commands);
+            },
             Bind::Toggle(config) => {
                 let alias_name_toggle = name_to_cmd(&config.name, "on");
                 let alias_name_untoggle = name_to_cmd(&config.name, "off");
@@ -103,9 +117,5 @@ pub fn process_bind() -> ValueResult<()>{
     )?;
     println!("File written to {path}");
 
-    Ok(())
-}
-pub fn process_say() -> ValueResult<()>{
-    // get_arg()
     Ok(())
 }
