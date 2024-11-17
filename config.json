@@ -33,6 +33,18 @@
             "down_key": "F4",
             "console": "volume",
             "default": 1
+        },
+        {
+            "name": "Buy HE",
+            "type": "execute",
+            "key": "F10",
+            "commands": ["c_he"]
+        },
+        {
+            "name": "Saying Bean ice",
+            "type": "execute",
+            "key": "F10",
+            "commands": ["say bean ice guys"]
         }
     ]
 }
