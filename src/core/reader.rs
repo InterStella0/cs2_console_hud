@@ -41,8 +41,9 @@ pub fn reading_log() -> ValueResult<()>{
             continue;
         };
         let dateformat = datetime.join(" ");
+        let date_formed = format!("{current_year}/{dateformat}");
         let Ok(dt) = NaiveDateTime::
-            parse_from_str(format!("{current_year}/{dateformat}").as_str(), "%Y/%m/%d %H:%M:%S")
+            parse_from_str(&date_formed, "%Y/%m/%d %H:%M:%S")
         else {
             continue;
         };
@@ -61,11 +62,12 @@ pub fn reading_log() -> ValueResult<()>{
                 );
                 let mut new_value = None;
                 for (_, reading) in lines{
-                    if reading.contains(&b.user){
-                        let split_by = format!("{}: ", "");
-                        let splitting: Vec<&str> = reading.splitn(1, &split_by).collect();
-                        new_value = splitting.get(1).cloned()
+                    if !reading.contains(&b.user){
+                        continue;
                     }
+                    let split_by = format!("{}: ", &b.user);
+                    let splitting: Vec<&str> = reading.splitn(2, &split_by).collect();
+                    new_value = splitting.get(1).cloned()
                 }
                 if let Some(new) = new_value{
                     let fp = format!("{}/{}", b.fullpath, b.filename);
