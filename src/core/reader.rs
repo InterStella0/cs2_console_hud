@@ -1,4 +1,6 @@
 use std::fs;
+use std::thread;
+use std::time::Duration;
 
 use chrono::Datelike;
 use chrono::Local;
@@ -27,7 +29,22 @@ pub fn reading_log() -> ValueResult<()>{
         CommandError::ArgumentError(format!("Invalid bind name:{bind_name}"))
     )?;  // Integrity check
     let re = Regex::new(&format!("{resolve_name}_(?<value>[\\w_]+)")).unwrap();
-    let content = fs::read_to_string(conf.cs2_console_path).unwrap_or("".into());
+
+    // block during console.log became too large. When it's large, its useless to read when its
+    // empty. Probably file is written "w" mode instead of append.
+    let delay = Duration::from_millis(50);
+    let file_path = &conf.cs2_console_path;
+
+    for _ in 0..10 {
+        if let Ok(metadata) = fs::metadata(file_path) {
+            if metadata.len() > 0{
+                break;
+            }
+        };
+        thread::sleep(delay);
+    }
+
+    let content = fs::read_to_string(file_path).unwrap_or("".into());
     let mut current_value = String::from("NA");
     let current_year = Local::now().year();
 
