@@ -80,10 +80,6 @@ Generate binds by running this command with your executable file you've created
 ./cs_hud generate-bind
 ```
 It will produce a file called `bind_generated.cfg` which you have to place in your CS2 `cfg` folder and have `autoexec.cfg` to point to the file.
-On Windows, you will find it at 
-```
-C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\cfg
-```
 On Linux, you will find it at
 ```
 ~/.steam/steam/steamapps/common/Counter-Strike Global Offensive/game/csgo/cfg/
