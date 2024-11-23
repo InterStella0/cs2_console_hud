@@ -97,7 +97,7 @@ Within the `MangoHud.conf`, you can add the following `exec`.
 ```
 # For VOIP Volume
 custom_text=VOIP Volume
-exec=cd /home/your-user/cs2_console_hud/target/release/ && ./cs2_hud read VOIP_Volume
+exec=cd /home/your-user/cs2_console_hud/ && ./cs2_hud read VOIP_Volume
 
 # For Music Volume
 custom_text=Music Volume 
