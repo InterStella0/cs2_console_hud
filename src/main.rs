@@ -15,7 +15,13 @@ fn main(){
     match mode.as_str(){
         "read" => reading_log(),
         "generate-bind" => process_bind(),
-        _ => return
+        _ => {
+            println!(
+                "Invalid reading value provided '{}'. Choices are 'read', and 'generate-bind'.", 
+                mode
+            );
+            return
+        },
     }.unwrap_or_else(|e| {
         let message = match e {
             CommandError::ExpectedArgument(s, pos) => format!(
