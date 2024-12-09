@@ -51,8 +51,8 @@ Will produce a bind `F10` and executes both
 ## Cycle Type
 A bind that will select & cycle through binds when all of the bind is set to the same key.
 
-Example: You have VOIP Volume and Master Volume bind to F5 for down, and F6 for up key, you can
-click on this bind to select whether to control VOIP Volume OR Master Volume.
+Example: You have VOIP Volume and Master Volume bind to F5 for down, and F6 for up key, you can use this bind (`F13` in this case)
+to control VOIP Volume OR Master Volume.
 ```json
 {
     "name": "Select Volume Control",

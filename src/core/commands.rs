@@ -128,7 +128,7 @@ pub fn process_bind() -> ValueResult<()>{
             },
             Bind::Cycle(config) => {
                 let alias_names: Vec<String> = config.bind_names.iter().enumerate().map(
-                    |(i, e)| name_to_cmd(&config.name, &i.to_string())
+                    |(i, _)| name_to_cmd(&config.name, &i.to_string())
                 ).collect();
                 let mut cmds = vec![];
                 for (i, name) in config.bind_names.iter().enumerate(){
