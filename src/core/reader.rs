@@ -22,7 +22,8 @@ pub fn reading_log() -> ValueResult<()>{
             Bind::Interval(bind) => bind.name.clone(),
             Bind::Toggle(bind) => bind.name.clone(),
             Bind::Execute(bind) => bind.name.clone(),
-            Bind::RepeatSay(bind) => bind.name.clone()
+            Bind::RepeatSay(bind) => bind.name.clone(),
+            Bind::Cycle(bind) => bind.name.clone()
         };
         cmd_name(&name) == resolve_name
     }).ok_or_else(||
@@ -113,6 +114,7 @@ pub fn reading_log() -> ValueResult<()>{
             },
             Bind::Toggle(b) => b.console_value(value.as_str())?,
             Bind::Execute(b) => b.console_value(value.as_str())?,
+            Bind::Cycle(b) => b.console_value(value.as_str())?,
         };
     }
     println!("{current_value}");

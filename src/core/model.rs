@@ -8,7 +8,8 @@ pub enum Bind{
     RepeatSay(RepeatSayBind),
     Execute(ExecuteBind),
     Toggle(ToggleBind),
-    Interval(IntervalBind)
+    Interval(IntervalBind),
+    Cycle(CycleBind)
 }
 
 pub trait ParseValue{
@@ -43,6 +44,18 @@ pub struct RepeatSayBind{
     pub send_key: String,
 }
 impl ParseValue for RepeatSayBind{
+    fn console_value(&self, value: &str) -> ValueResult<String> {
+        Ok(String::from(value))
+    }
+}
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CycleBind{
+    pub name: String,
+    pub key: String,
+    pub bind_names: Vec<String>,
+    pub default: usize
+}
+impl ParseValue for CycleBind{
     fn console_value(&self, value: &str) -> ValueResult<String> {
         Ok(String::from(value))
     }
@@ -135,6 +148,7 @@ where
             "repeat_say" => Bind::RepeatSay(create_bind::<D, RepeatSayBind>(bind_owned, bind_name)?),
             "toggle" =>  Bind::Toggle(create_bind::<D, ToggleBind>(bind_owned, bind_name)?),
             "interval" => Bind::Interval(create_bind::<D, IntervalBind>(bind_owned, bind_name)?),
+            "cycle" => Bind::Cycle(create_bind::<D, CycleBind>(bind_owned, bind_name)?),
             _ => return Err(D::Error::custom(format!("Unknown bind type: {bind_type}"))),
             };
         result.push(parsed);

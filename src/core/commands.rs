@@ -1,4 +1,5 @@
 use std::cmp::min;
+use std::collections::HashMap;
 use std::fs;
 
 use super::utils::{get_config, ValueResult, CommandError};
@@ -11,40 +12,57 @@ pub fn name_to_cmd(name: &str, suffix: &str) -> String{
     format!("{}_{}", cmd_name(name), suffix)
 }
 
+pub fn clean_key(key: &str) -> &str{
+    let key_name = key.trim();
+    match key_name{
+        ";" => "semicolon",
+        other => other
+    }
+}
+
 
 pub fn process_bind() -> ValueResult<()>{
     let conf = get_config()?;
     let mut config_binds = vec![];
-    for bind in conf.binds{
+    let mut all_binds = conf.binds;
+    all_binds.sort_by_key(|a| match a{
+        Bind::Cycle(_) => 1,  // Cycle must be last so it has other binds available.
+        _ => -1
+    });
+    let mut generated_binds = HashMap::new();
+    for bind in all_binds{
         match bind{
             Bind::Execute(config) => {
                 let cmds = config.commands.join(";");
-                let command = format!("bind {} \"{}\"", config.key, cmds);
+                let command = format!("bind {} \"{}\"", clean_key(&config.key), cmds);
+                generated_binds.insert(config.name, command.clone());
                 config_binds.push(command);
             },
             Bind::RepeatSay(config) => {
                 let alias_value = name_to_cmd(&config.name, "record");
-                let commands = vec![
+                let commands: Vec<String> = vec![
                     format!("alias {0} \"echo READ_LAST;bind {1} {0}\"", 
-                        alias_value, config.record_key),
-                    format!("bind {} {}", config.record_key, alias_value),
-                    format!("bind {} \"exec {}\"", config.send_key, config.filename),
+                        alias_value, clean_key(&config.record_key)),
+                    format!("bind {} {}", clean_key(&config.record_key), alias_value),
+                    format!("bind {} \"exec {}\"", clean_key(&config.send_key), config.filename),
                 ];
+                generated_binds.insert(config.name, commands.join("\n"));
                 config_binds.extend(commands);
             },
             Bind::Toggle(config) => {
                 let alias_name_toggle = name_to_cmd(&config.name, "on");
                 let alias_name_untoggle = name_to_cmd(&config.name, "off");
-                let mut command = format!("bind {} {}", config.key, alias_name_toggle);
-                command += format!(
-                    "\nalias {} \"{};bind {} {}\"", &alias_name_toggle, &config.console_activate, 
-                    &config.key, alias_name_untoggle
-                ).as_str();
-                command += format!(
-                    "\nalias {} \"{};bind {} {}\"", &alias_name_untoggle, 
-                    &config.console_deactivate, &config.key, alias_name_toggle
-                ).as_str();
-                config_binds.push(command);
+                let commands = vec![
+                    format!("bind {} {}", clean_key(&config.key), alias_name_toggle),
+                    format!("\nalias {} \"{};bind {} {}\"", &alias_name_toggle, &config.console_activate, 
+                        clean_key(&config.key), alias_name_untoggle
+                    ),
+                    format!("\nalias {} \"{};bind {} {}\"", &alias_name_untoggle, 
+                        &config.console_deactivate, clean_key(&config.key), alias_name_toggle
+                    )
+                ];
+                generated_binds.insert(config.name, commands.join("\n"));
+                config_binds.extend(commands);
             },
             Bind::Interval(config) => {
                 // default
@@ -53,7 +71,7 @@ pub fn process_bind() -> ValueResult<()>{
                 // snd_musicvolume 1
                 // ongoing
                 // alias set_music_90 "snd_musicvolume 0.9; bind f7 set_music_80; bind f8 set_music_100"
-                // alias set_music_90 "snd_musicvolume 0.9; bind f7 set_music_80; bind f8 set_music_100"
+                // alias set_music_80 "snd_musicvolume 0.8; bind f7 set_music_70; bind f8 set_music_90"
 
                 let mut commands = vec![];
                 let mut value = config.min;
@@ -93,8 +111,8 @@ pub fn process_bind() -> ValueResult<()>{
                     commands.push(format!(
                         "alias {} \"{}; bind {} {}; bind {} {}\"", 
                         &alias_value, value, 
-                        &config.up_key, &next_key,
-                        &config.down_key, &prev_key
+                        clean_key(&config.up_key), &next_key,
+                        clean_key(&config.down_key), &prev_key
                     ));
                 }
                 let initial = match default_alias {
@@ -104,8 +122,28 @@ pub fn process_bind() -> ValueResult<()>{
                         || CommandError::ProcessError("Couldn't resolve default bind.".into())
                     ).and_then(|d  | Ok(d.0.clone()))?
                 };
+                generated_binds.insert(config.name, initial.clone());
                 commands.push(initial);
                 config_binds.extend(commands);
+            },
+            Bind::Cycle(config) => {
+                let alias_names: Vec<String> = config.bind_names.iter().enumerate().map(
+                    |(i, e)| name_to_cmd(&config.name, &i.to_string())
+                ).collect();
+                let mut cmds = vec![];
+                for (i, name) in config.bind_names.iter().enumerate(){
+                    if !generated_binds.contains_key(name){
+                        return Err(CommandError::ProcessError(format!("Bind name '{}' does not exist!", name)))
+                    }
+                    let execute = generated_binds.get(name).expect("Generated bind not found?");
+                    let alias_name = &alias_names[i];
+                    let next_index = if i + 1 == alias_names.len() { 0 } else { i + 1 };
+                    let next_alias = &alias_names[next_index];
+                    let cmd = format!("alias {} \"{}; \"bind {} {}\"\"", alias_name, execute, clean_key(&config.key), next_alias);
+                    cmds.push(cmd);
+                }
+                cmds.push(format!("bind {} {}", clean_key(&config.key), alias_names[config.default]));
+                config_binds.extend(cmds);
             }
         }
     }

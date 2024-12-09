@@ -48,6 +48,24 @@ Example:
 Will produce a bind `F10` and executes both
 `c_he` and saying `buying he!` in the console.
 
+## Cycle Type
+A bind that will select & cycle through binds when all of the bind is set to the same key.
+
+Example: You have VOIP Volume and Master Volume bind to F5 for down, and F6 for up key, you can
+click on this bind to select whether to control VOIP Volume OR Master Volume.
+```json
+{
+    "name": "Select Volume Control",
+    "type": "cycle",
+    "key": "F13",
+    "bind_names": ["VOIP Volume", "Master Volume"],
+    "default": 0
+}
+```
+
+The `default` is the index position of the bind_names, starting from 0, this example it uses
+`0` => `VOIP Volume`. You can put as many binds as you like.
+
 # Setup
 ## Prerequisite
 - Install [MangoHud](https://github.com/flightlessmango/MangoHud) on your machine.
